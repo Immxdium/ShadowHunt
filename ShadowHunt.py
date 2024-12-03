@@ -965,22 +965,58 @@ if args.j:
 
 # Check if DNS scan is requested
 if args.dns:
-    if args.save:
-        print(Fore.CYAN + "Saving output to {}...".format(args.save))
-        commands(f"cat {args.dns} | dnsx -silent -a -resp >> {args.save}")
-        commands(f"cat {args.dns} | dnsx -silent -ns -resp >> {args.save}")
-        commands(f"cat {args.dns} | dnsx -silent -cname -resp >> {args.save}")
-    else:
-        print(Fore.CYAN + "Printing A records...\n")
-        time.sleep(2)
-        commands(f"cat {args.dns} | dnsx -silent -a -resp\n")
-        print(Fore.CYAN + "Printing NS Records...\n")
-        time.sleep(2)
-        commands(f"cat {args.dns} | dnsx -silent -ns -resp\n")
-        print(Fore.CYAN + "Printing CNAME records...\n")
-        time.sleep(2)
-        commands(f"cat {args.dns} | dnsx -silent -cname -resp\n")
+    def check_dns(subdomain):
+        try:
+            # Get A records
+            a_records = dns.resolver.resolve(subdomain, 'A')
+            for record in a_records:
+                print(f"{Fore.GREEN}{subdomain} {Fore.WHITE}- {Fore.CYAN}A Record: {record}")
 
+            # Get AAAA records
+            aaaa_records = dns.resolver.resolve(subdomain, 'AAAA')
+            for record in aaaa_records:
+                print(f"{Fore.GREEN}{subdomain} {Fore.WHITE}- {Fore.CYAN}AAAA Record: {record}")
+
+            # Get MX records
+            mx_records = dns.resolver.resolve(subdomain, 'MX')
+            for record in mx_records:
+                print(f"{Fore.GREEN}{subdomain} {Fore.WHITE}- {Fore.CYAN}MX Record: {record.exchange}")
+
+            # Get NS records
+            ns_records = dns.resolver.resolve(subdomain, 'NS')
+            for record in ns_records:
+                print(f"{Fore.GREEN}{subdomain} {Fore.WHITE}- {Fore.CYAN}NS Record: {record}")
+
+            # Get TXT records
+            txt_records = dns.resolver.resolve(subdomain, 'TXT')
+            for record in txt_records:
+                print(f"{Fore.GREEN}{subdomain} {Fore.WHITE}- {Fore.CYAN}TXT Record: {record}")
+
+        except dns.resolver.NXDOMAIN:
+            print(f"{Fore.RED}No DNS records found for {subdomain}")
+        except dns.resolver.NoAnswer:
+            pass
+        except dns.exception.DNSException as e:
+            print(f"{Fore.RED}DNS error for {subdomain}: {str(e)}")
+
+    if args.save:
+        print(Fore.CYAN + f"Saving output to {args.save}...")
+        with open(args.dns) as f:
+            domains = [x.strip() for x in f.readlines()]
+            with open(args.save, 'w') as output:
+                for domain in domains:
+                    try:
+                        check_dns(domain)
+                    except Exception as e:
+                        print(f"{Fore.RED}Error processing {domain}: {str(e)}")
+    else:
+        with open(args.dns) as f:
+            domains = [x.strip() for x in f.readlines()]
+            for domain in domains:
+                try:
+                    check_dns(domain)
+                except Exception as e:
+                    print(f"{Fore.RED}Error processing {domain}: {str(e)}")
 # Check if probe scan is requested
 if args.probe:
     if args.save:
