@@ -2679,7 +2679,7 @@ if args.subdomaintakeover:
         except requests.RequestException:
             pass
         
-     def check_dns(subdomain):
+    def check_dns(subdomain):
         try:
             answers = dns.resolver.resolve(subdomain, 'CNAME')
             for rdata in answers:
