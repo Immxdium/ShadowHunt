@@ -1394,7 +1394,7 @@ if args.forbiddenpass:
         main(wordlist)
         
 # Check if directory brute force is requested
-if args.directorybruteforce:
+if args.directorybrute:
     if args.wordlist:
         if args.thread:
             def filter_wordlist(wordlist, extensions):
